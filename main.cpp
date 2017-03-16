@@ -15,76 +15,75 @@ int main()
     int i = 0;
     int j = 0;
     stringstream ss;
-    int *inputMass;         // массив байт пакета
-    int sizeMass;           // размер массива байтов
-    int ihl = 0;            // для IPv4 - размер заголовка, для IPv6 = 0
-    int crcIP = 0;          // значение чексуммы заголовка IP
-    int crcUDP = 0;         // значение чексуммы заголовка UDP
-    int crcTMP = 0;             // временная переменная для рассчетов CRC
-    string inputStr;        // исходная строка с пробелами
-    setlocale( LC_ALL, "Russian" );
-    cout << "Протоколы, сервисы и услуги в сетях IP" << endl;
-    cout << "Подсчет контрольной суммы заголовков IP, TCP, UDP" << endl;
-    cout << "Версия 1.0" << endl << endl;
-    cout << "Введите содержимое пакета в шестнадцатиричном виде, отделяя байты пробелами." << endl;
-    cout << "Необходимые для вычисления поля контрольной суммы заменить нулями." << endl;
-    cout << "Пакет: " << endl;
-    getline(cin >> hex, inputStr);     // читаем строку с пробелами
-    cout << endl << "Размер пакета = " << inputStr.length() << " символ с пробелами" << endl;    // общее количество символов в строке
-    sizeMass =  ( inputStr.length() + 1 ) / 3 ;     // размер массива = количеству символов в строке без пробелов, по два символа в ячейку массива
-    // для строки 14 E8 количество символов = 5, прибавляем 1 символ под "недостающий" пробел в конце строки, делим на 3 = получаем 2 байта
-    inputMass = new int [ sizeMass ];      // выделяем память под количество байт пакета
-    cout << "Количество байт = " << ( inputStr.length() + 1 ) / 3 << endl << endl;
-    for ( i=0; i < (inputStr.length()+1); i = i + 3)    // перебираем символы строки: нулевой, а после каждый третий символ - начало байта (двухсимвольный элемент)
-        if ( j < sizeMass )         // заполняем массив байт пакета
+    int *inputMass;         // massive with packet's bytes
+    int sizeMass;           // size of it
+    int ihl = 0;            // internet header length, for IPv4 = real length, IPv6 doesn't support
+    int crcIP = 0;          // checksum IP
+    int crcUDP = 0;         // checksum UDP
+    int crcTMP = 0;             // temporary variable to calculate
+    string inputStr;        // input string with spaces between bytes
+    cout << "Protocols and services of IP networks" << endl;
+    cout << "CRC calculate of IP, TCP, UDP headers" << endl;
+    cout << "V1.0" << endl << endl;
+    cout << "Enter the packet in HEX, put space between bytes" << endl;
+    cout << "If you need to calculate checksum, put 00 00 in desired bytes" << endl;
+    cout << "Packet: " << endl;
+    getline(cin >> hex, inputStr);     // read string with spaces
+    cout << endl << "Size of packet = " << inputStr.length() << " symbols include spaces << endl;    // Whole number of chars in string
+    sizeMass =  ( inputStr.length() + 1 ) / 3 ;     // size of mass = number of chars in string without spaces, two chars in one masive's variable
+    // for string 14 E8 number of chars is 5, add 1 char for very last byte at the end of string, devided by 3 = 2 bytes
+    inputMass = new int [ sizeMass ];      // allocate memory of needed number of bytes
+    cout << "ГЉГ®Г«ГЁГ·ГҐГ±ГІГўГ® ГЎГ Г©ГІ = " << ( inputStr.length() + 1 ) / 3 << endl << endl;
+    for ( i=0; i < (inputStr.length()+1); i = i + 3)    // sort string's chars: zero first, then every third char (whic is byte)
+        if ( j < sizeMass )         // fill our actuall massive with chars from string
         {
-            ss << hex << inputStr[ i ];     // помещаем значение первого символа байта из строки в хранилище-поток в HEX-виде
-            ss << hex << inputStr[ i + 1 ]; // помещаем значение второго символа байта
-            ss >> inputMass[ j ];       // выводим значения из хранилища-потока в ячейку массива байтов
-            j++;                // итератор
-            ss.clear();         // очищаем хранилище-поток
+            ss << hex << inputStr[ i ];     // put the value of first char from string into temp stream
+            ss << hex << inputStr[ i + 1 ]; // then the second one
+            ss >> inputMass[ j ];       // fill the actual massive 
+            j++;                // itr
+            ss.clear();         // flush the stream
         }
-    for ( j = 0, i = 0; j < sizeMass; j++ )    {        // вывод элементов массива байтов
+    for ( j = 0, i = 0; j < sizeMass; j++ )    {        // display the elements
         if ( i == 16 )  {
             i = 0;
             cout << endl;
         }
         i++;
-        cout << hex << setfill('0') << setw(2) << uppercase <<  inputMass[ j ] << " ";      // форматированный вывод HEX-элементов с ведущими нулями и в верхнем регистре
+        cout << hex << setfill('0') << setw(2) << uppercase <<  inputMass[ j ] << " ";      // ГґГ®Г°Г¬Г ГІГЁГ°Г®ГўГ Г­Г­Г»Г© ГўГ»ГўГ®Г¤ HEX-ГЅГ«ГҐГ¬ГҐГ­ГІГ®Гў Г± ГўГҐГ¤ГіГ№ГЁГ¬ГЁ Г­ГіГ«ГїГ¬ГЁ ГЁ Гў ГўГҐГ°ГµГ­ГҐГ¬ Г°ГҐГЈГЁГ±ГІГ°ГҐ
     }
     if (inputMass[12] == 0x08 && inputMass[13] == 0x00) {   //
-        cout << endl << endl << "Заголовок Ethernet:" << endl << endl;
-        outputValue(inputMass, 0, 6, 0, "MAC получателя");
-        outputValue(inputMass, 6, 12, 0, "MAC отправителя");
+        cout << endl << endl << "Г‡Г ГЈГ®Г«Г®ГўГ®ГЄ Ethernet:" << endl << endl;
+        outputValue(inputMass, 0, 6, 0, "MAC ГЇГ®Г«ГіГ·Г ГІГҐГ«Гї");
+        outputValue(inputMass, 6, 12, 0, "MAC Г®ГІГЇГ°Г ГўГЁГІГҐГ«Гї");
         outputValue(inputMass, 12, 14, 0, "IPv4 over Ethernet");
         cout << endl;
 
-        if ((0b11110000 & inputMass[14]) == 0b01000000) {    // проверка первых 4х бит IP-пакета - версии IP
-            cout << "Заголовок IP:" << endl;
-            outputValue(inputMass, 14, 16, 0, "IPv4, длина заголовка (4-х байтных слов); тип трафика");
-            ihl = (0b00001111 & inputMass[14])*4; // вычисляем длину заголовка в байтах, вторые 4 бит
-            cout << "Длина заголовка IP (IHL) = " << dec << ihl << " байт" << endl;
-            ihl = 14 + ihl;     // заголовок IP заканчивается по адресу ihl
-            outputValue(inputMass, 16, 18, 1, "- Длина пакета IP в байтах");
+        if ((0b11110000 & inputMass[14]) == 0b01000000) {    // ГЇГ°Г®ГўГҐГ°ГЄГ  ГЇГҐГ°ГўГ»Гµ 4Гµ ГЎГЁГІ IP-ГЇГ ГЄГҐГІГ  - ГўГҐГ°Г±ГЁГЁ IP
+            cout << "Г‡Г ГЈГ®Г«Г®ГўГ®ГЄ IP:" << endl;
+            outputValue(inputMass, 14, 16, 0, "IPv4, Г¤Г«ГЁГ­Г  Г§Г ГЈГ®Г«Г®ГўГЄГ  (4-Гµ ГЎГ Г©ГІГ­Г»Гµ Г±Г«Г®Гў); ГІГЁГЇ ГІГ°Г ГґГЁГЄГ ");
+            ihl = (0b00001111 & inputMass[14])*4; // ГўГ»Г·ГЁГ±Г«ГїГҐГ¬ Г¤Г«ГЁГ­Гі Г§Г ГЈГ®Г«Г®ГўГЄГ  Гў ГЎГ Г©ГІГ Гµ, ГўГІГ®Г°Г»ГҐ 4 ГЎГЁГІ
+            cout << "Г„Г«ГЁГ­Г  Г§Г ГЈГ®Г«Г®ГўГЄГ  IP (IHL) = " << dec << ihl << " ГЎГ Г©ГІ" << endl;
+            ihl = 14 + ihl;     // Г§Г ГЈГ®Г«Г®ГўГ®ГЄ IP Г§Г ГЄГ Г­Г·ГЁГўГ ГҐГІГ±Гї ГЇГ® Г Г¤Г°ГҐГ±Гі ihl
+            outputValue(inputMass, 16, 18, 1, "- Г„Г«ГЁГ­Г  ГЇГ ГЄГҐГІГ  IP Гў ГЎГ Г©ГІГ Гµ");
 
-            cout << endl << "Расчет контрольной суммы заголовка IP:" << endl;
+            cout << endl << "ГђГ Г±Г·ГҐГІ ГЄГ®Г­ГІГ°Г®Г«ГјГ­Г®Г© Г±ГіГ¬Г¬Г» Г§Г ГЈГ®Г«Г®ГўГЄГ  IP:" << endl;
             if (inputMass[24]==0 && inputMass[25] == 0) {
                 calculateSUM(inputMass,14,ihl,crcIP);
                 calculateCRC(crcIP, "IP");
             }
             else
-                cout << "Контрольная сумма указана в пакете, равна " << hex << setfill('0') << setw(2) << inputMass[24] << " " << setfill('0') << setw(2) << inputMass[25] << endl;
+                cout << "ГЉГ®Г­ГІГ°Г®Г«ГјГ­Г Гї Г±ГіГ¬Г¬Г  ГіГЄГ Г§Г Г­Г  Гў ГЇГ ГЄГҐГІГҐ, Г°Г ГўГ­Г  " << hex << setfill('0') << setw(2) << inputMass[24] << " " << setfill('0') << setw(2) << inputMass[25] << endl;
 
             if (inputMass[23]==0x11) {
-                cout << "Заголовок UDP" << endl;
+                cout << "Г‡Г ГЈГ®Г«Г®ГўГ®ГЄ UDP" << endl;
                 if (inputMass[ihl+6]==0 && inputMass[ihl+7]==0)    {
-                    cout << "Расчет контрольной суммы заголовка UDP:" << endl;
+                    cout << "ГђГ Г±Г·ГҐГІ ГЄГ®Г­ГІГ°Г®Г«ГјГ­Г®Г© Г±ГіГ¬Г¬Г» Г§Г ГЈГ®Г«Г®ГўГЄГ  UDP:" << endl;
                     calculateSUM(inputMass, 26, 33, crcUDP);
 
                     cout << hex << setfill('0') << setw(4) << crcUDP << " + 0011 = ";
                     crcUDP += 0x0011;
                     cout << crcUDP << endl;
-                    ss << hex << setfill('0') << setw(2) << inputMass[ihl+4] << setfill('0') << setw(2) << inputMass[ihl+5];      // прибавляем псевдозаголовок: протокол (UDP) - 0011
+                    ss << hex << setfill('0') << setw(2) << inputMass[ihl+4] << setfill('0') << setw(2) << inputMass[ihl+5];      // ГЇГ°ГЁГЎГ ГўГ«ГїГҐГ¬ ГЇГ±ГҐГўГ¤Г®Г§Г ГЈГ®Г«Г®ГўГ®ГЄ: ГЇГ°Г®ГІГ®ГЄГ®Г« (UDP) - 0011
                     ss >> crcTMP;
                     cout << hex << setfill('0') << setw(4) << crcUDP << " + " << setfill('0') << setw(4) << crcTMP;
                     crcUDP += crcTMP;
@@ -95,7 +94,7 @@ int main()
                     calculateSUM(inputMass, ihl, sizeMass, crcUDP);
                     calculateCRC(crcUDP, "UDP");
                 }
-                else cout << "Контрольная сумма указана в пакете, равна " << hex << setfill('0') << setw(2) << inputMass[ihl+6] << setfill('0') << setw(2) << inputMass[ihl+7] << endl;
+                else cout << "ГЉГ®Г­ГІГ°Г®Г«ГјГ­Г Гї Г±ГіГ¬Г¬Г  ГіГЄГ Г§Г Г­Г  Гў ГЇГ ГЄГҐГІГҐ, Г°Г ГўГ­Г  " << hex << setfill('0') << setw(2) << inputMass[ihl+6] << setfill('0') << setw(2) << inputMass[ihl+7] << endl;
             }
 
 
@@ -103,9 +102,9 @@ int main()
             if (inputMass[23]==0x06) cout << "TCP";
             if (inputMass[23]==0x01) cout << "ICMP";
         }
-        /* тут должно быть про IPv6 */
+        /* ГІГіГІ Г¤Г®Г«Г¦Г­Г® ГЎГ»ГІГј ГЇГ°Г® IPv6 */
     }
-    /*cout << endl << "Завершение программы" << endl;
+    /*cout << endl << "Г‡Г ГўГҐГ°ГёГҐГ­ГЁГҐ ГЇГ°Г®ГЈГ°Г Г¬Г¬Г»" << endl;
     cin.get();*/
     return 0;
 }
@@ -134,7 +133,7 @@ void calculateCRC(int &CRC_NAME, string proto)    {
     cout << CRC_NAME << endl;
     cout << "FFFF - " << CRC_NAME << " = ";
     CRC_NAME = 0xFFFF-CRC_NAME;
-    cout << CRC_NAME << " - контрольная сумма заголовка " << proto << endl;
+    cout << CRC_NAME << " - ГЄГ®Г­ГІГ°Г®Г«ГјГ­Г Гї Г±ГіГ¬Г¬Г  Г§Г ГЈГ®Г«Г®ГўГЄГ  " << proto << endl;
 }
 
 void outputValue(int *MASS, int MASS_START, int MASS_END, bool decimal, string text) {
@@ -143,7 +142,7 @@ void outputValue(int *MASS, int MASS_START, int MASS_END, bool decimal, string t
         cout << hex << setfill('0') << setw(2) << MASS[it] << " ";
     }
     if (decimal)    {
-        cout << "Десятичный: ";
+        cout << "Г„ГҐГ±ГїГІГЁГ·Г­Г»Г©: ";
         for (it = MASS_START; it < MASS_END; it++)  {
         cout << dec << setfill('0') << setw(2) << MASS[it] << " ";
         }
