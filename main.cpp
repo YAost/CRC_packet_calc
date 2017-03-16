@@ -49,41 +49,41 @@ int main()
             cout << endl;
         }
         i++;
-        cout << hex << setfill('0') << setw(2) << uppercase <<  inputMass[ j ] << " ";      // ôîðìàòèðîâàííûé âûâîä HEX-ýëåìåíòîâ ñ âåäóùèìè íóëÿìè è â âåðõíåì ðåãèñòðå
+        cout << hex << setfill('0') << setw(2) << uppercase <<  inputMass[ j ] << " ";      // formated output of HEX-elements with leading zeroes in capitals
     }
     if (inputMass[12] == 0x08 && inputMass[13] == 0x00) {   //
-        cout << endl << endl << "Çàãîëîâîê Ethernet:" << endl << endl;
-        outputValue(inputMass, 0, 6, 0, "MAC ïîëó÷àòåëÿ");
-        outputValue(inputMass, 6, 12, 0, "MAC îòïðàâèòåëÿ");
+        cout << endl << endl << "Ethernet header:" << endl << endl;
+        outputValue(inputMass, 0, 6, 0, "Destination MAC");
+        outputValue(inputMass, 6, 12, 0, "Sender MAC");
         outputValue(inputMass, 12, 14, 0, "IPv4 over Ethernet");
         cout << endl;
 
-        if ((0b11110000 & inputMass[14]) == 0b01000000) {    // ïðîâåðêà ïåðâûõ 4õ áèò IP-ïàêåòà - âåðñèè IP
-            cout << "Çàãîëîâîê IP:" << endl;
-            outputValue(inputMass, 14, 16, 0, "IPv4, äëèíà çàãîëîâêà (4-õ áàéòíûõ ñëîâ); òèï òðàôèêà");
-            ihl = (0b00001111 & inputMass[14])*4; // âû÷èñëÿåì äëèíó çàãîëîâêà â áàéòàõ, âòîðûå 4 áèò
-            cout << "Äëèíà çàãîëîâêà IP (IHL) = " << dec << ihl << " áàéò" << endl;
-            ihl = 14 + ihl;     // çàãîëîâîê IP çàêàí÷èâàåòñÿ ïî àäðåñó ihl
-            outputValue(inputMass, 16, 18, 1, "- Äëèíà ïàêåòà IP â áàéòàõ");
+        if ((0b11110000 & inputMass[14]) == 0b01000000) {    // check IP version
+            cout << "IP header:" << endl;
+            outputValue(inputMass, 14, 16, 0, "IPv4 header length (4byte words); type of service");
+            ihl = (0b00001111 & inputMass[14])*4; // calculate length in bytes, last 4 bits
+            cout << "IP header length = " << dec << ihl << " byte" << endl;
+            ihl = 14 + ihl;     // ip header ends up at ihl address
+            outputValue(inputMass, 16, 18, 1, "- length of IP packet (bytes)");
 
-            cout << endl << "Ðàñ÷åò êîíòðîëüíîé ñóììû çàãîëîâêà IP:" << endl;
+            cout << endl << "Calculate checksum of IP header:" << endl;
             if (inputMass[24]==0 && inputMass[25] == 0) {
                 calculateSUM(inputMass,14,ihl,crcIP);
                 calculateCRC(crcIP, "IP");
             }
             else
-                cout << "Êîíòðîëüíàÿ ñóììà óêàçàíà â ïàêåòå, ðàâíà " << hex << setfill('0') << setw(2) << inputMass[24] << " " << setfill('0') << setw(2) << inputMass[25] << endl;
+                cout << "CRC is in packet and it's " << hex << setfill('0') << setw(2) << inputMass[24] << " " << setfill('0') << setw(2) << inputMass[25] << endl;
 
             if (inputMass[23]==0x11) {
-                cout << "Çàãîëîâîê UDP" << endl;
+                cout << "UDP header" << endl;
                 if (inputMass[ihl+6]==0 && inputMass[ihl+7]==0)    {
-                    cout << "Ðàñ÷åò êîíòðîëüíîé ñóììû çàãîëîâêà UDP:" << endl;
+                    cout << "Calculate checksum of UDP header:" << endl;
                     calculateSUM(inputMass, 26, 33, crcUDP);
 
                     cout << hex << setfill('0') << setw(4) << crcUDP << " + 0011 = ";
                     crcUDP += 0x0011;
                     cout << crcUDP << endl;
-                    ss << hex << setfill('0') << setw(2) << inputMass[ihl+4] << setfill('0') << setw(2) << inputMass[ihl+5];      // ïðèáàâëÿåì ïñåâäîçàãîëîâîê: ïðîòîêîë (UDP) - 0011
+                    ss << hex << setfill('0') << setw(2) << inputMass[ihl+4] << setfill('0') << setw(2) << inputMass[ihl+5];      //add psuedoheader: protocol udp 00 11
                     ss >> crcTMP;
                     cout << hex << setfill('0') << setw(4) << crcUDP << " + " << setfill('0') << setw(4) << crcTMP;
                     crcUDP += crcTMP;
@@ -94,7 +94,7 @@ int main()
                     calculateSUM(inputMass, ihl, sizeMass, crcUDP);
                     calculateCRC(crcUDP, "UDP");
                 }
-                else cout << "Êîíòðîëüíàÿ ñóììà óêàçàíà â ïàêåòå, ðàâíà " << hex << setfill('0') << setw(2) << inputMass[ihl+6] << setfill('0') << setw(2) << inputMass[ihl+7] << endl;
+                else cout << "CRC is in packet and it's  " << hex << setfill('0') << setw(2) << inputMass[ihl+6] << setfill('0') << setw(2) << inputMass[ihl+7] << endl;
             }
 
 
@@ -102,7 +102,7 @@ int main()
             if (inputMass[23]==0x06) cout << "TCP";
             if (inputMass[23]==0x01) cout << "ICMP";
         }
-        /* òóò äîëæíî áûòü ïðî IPv6 */
+        /*should be about IPv6 */
     }
     /*cout << endl << "Çàâåðøåíèå ïðîãðàììû" << endl;
     cin.get();*/
@@ -133,7 +133,7 @@ void calculateCRC(int &CRC_NAME, string proto)    {
     cout << CRC_NAME << endl;
     cout << "FFFF - " << CRC_NAME << " = ";
     CRC_NAME = 0xFFFF-CRC_NAME;
-    cout << CRC_NAME << " - êîíòðîëüíàÿ ñóììà çàãîëîâêà " << proto << endl;
+    cout << CRC_NAME << " - checksum of header " << proto << endl;
 }
 
 void outputValue(int *MASS, int MASS_START, int MASS_END, bool decimal, string text) {
@@ -142,7 +142,7 @@ void outputValue(int *MASS, int MASS_START, int MASS_END, bool decimal, string t
         cout << hex << setfill('0') << setw(2) << MASS[it] << " ";
     }
     if (decimal)    {
-        cout << "Äåñÿòè÷íûé: ";
+        cout << "Decimal: ";
         for (it = MASS_START; it < MASS_END; it++)  {
         cout << dec << setfill('0') << setw(2) << MASS[it] << " ";
         }
